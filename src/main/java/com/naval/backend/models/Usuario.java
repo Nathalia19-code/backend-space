@@ -8,10 +8,10 @@ import org.springframework.data.mongodb.core.mapping.Document;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
-@Document(collection = "usuarios") //Nombre de la collecion MongoDB
-@Data //getters y setters
-@NoArgsConstructor //constructor vacio
-@AllArgsConstructor // contructor con todos los campos
+@Document(collection = "usuarios")
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
 
 public class Usuario{
     @Id
