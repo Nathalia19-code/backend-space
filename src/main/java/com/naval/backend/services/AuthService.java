@@ -30,6 +30,8 @@ public class AuthService {
 
   @Autowired private JavaMailSender mailSender;
 
+  @Autowired private RestTemplate restTemplate;
+
   public LoginResponse registrar(RegisterRequest request) {
     if (usuarioRepository.existsByEmail(request.getEmail())) {
       throw new RuntimeException("El email ya está registrado");
@@ -78,30 +80,30 @@ public class AuthService {
   }
 
   public void forgotPassword(String email) {
-    Usuario usuario =
-        usuarioRepository
-            .findByEmail(email)
-            .orElseThrow(() -> new RuntimeException("No existe una cuenta con ese email"));
+    usuarioRepository
+        .findByEmail(email)
+        .ifPresent(
+            usuario -> {
+              String token = UUID.randomUUID().toString();
+              usuario.setResetToken(token);
+              usuario.setResetTokenExpiry(LocalDateTime.now().plusMinutes(30));
+              usuarioRepository.save(usuario);
 
-    String token = UUID.randomUUID().toString();
-    usuario.setResetToken(token);
-    usuario.setResetTokenExpiry(LocalDateTime.now().plusMinutes(30));
-    usuarioRepository.save(usuario);
-
-    SimpleMailMessage mensaje = new SimpleMailMessage();
-    mensaje.setTo(email);
-    mensaje.setSubject("Recuperar contraseña — Naval");
-    mensaje.setText(
-        "Hola "
-            + usuario.getNombre()
-            + ",\n\n"
-            + "Para restablecer tu contraseña haz clic en este enlace:\n\n"
-            + "http://localhost:5173/reset-password?token="
-            + token
-            + "\n\n"
-            + "El enlace caduca en 30 minutos.\n\n"
-            + "Si no solicitaste este cambio, ignora este email.");
-    mailSender.send(mensaje);
+              SimpleMailMessage mensaje = new SimpleMailMessage();
+              mensaje.setTo(email);
+              mensaje.setSubject("Recuperar contraseña — Naval");
+              mensaje.setText(
+                  "Hola "
+                      + usuario.getNombre()
+                      + ",\n\n"
+                      + "Para restablecer tu contraseña haz clic en este enlace:\n\n"
+                      + "http://localhost:5173/reset-password?token="
+                      + token
+                      + "\n\n"
+                      + "El enlace caduca en 30 minutos.\n\n"
+                      + "Si no solicitaste este cambio, ignora este email.");
+              mailSender.send(mensaje);
+            });
   }
 
   public void resetPassword(String token, String nuevaPassword) {
@@ -121,7 +123,6 @@ public class AuthService {
   }
 
   public LoginResponse loginConGoogle(String accessToken) {
-    RestTemplate restTemplate = new RestTemplate();
     HttpHeaders headers = new HttpHeaders();
     headers.setBearerAuth(accessToken);
     HttpEntity<Void> entity = new HttpEntity<>(headers);

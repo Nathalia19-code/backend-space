@@ -27,7 +27,7 @@ public class LugarController {
 
   @DeleteMapping("/{id}")
   public ResponseEntity<Void> eliminar(@PathVariable String id) {
-    lugarService.eliminarFavorito(id);
+    lugarService.eliminarFavorito(id, getUsuarioId());
     return ResponseEntity.noContent().build();
   }
 

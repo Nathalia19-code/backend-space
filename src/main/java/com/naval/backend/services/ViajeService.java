@@ -41,19 +41,21 @@ public class ViajeService {
     return todos.stream().map(this::toResponse).collect(Collectors.toList());
   }
 
-  public ViajeResponse obtenerPorId(String id) {
+  public ViajeResponse obtenerPorId(String id, String usuarioId) {
     Viaje viaje =
         viajeRepository
             .findById(id)
             .orElseThrow(() -> new RuntimeException("Viaje no encontrado: " + id));
+    verificarAcceso(viaje, usuarioId);
     return toResponse(viaje);
   }
 
-  public ViajeResponse actualizar(String id, ViajeRequest request) {
+  public ViajeResponse actualizar(String id, ViajeRequest request, String usuarioId) {
     Viaje viaje =
         viajeRepository
             .findById(id)
             .orElseThrow(() -> new RuntimeException("Viaje no encontrado: " + id));
+    verificarAcceso(viaje, usuarioId);
     viaje.setTitulo(request.getTitulo());
     viaje.setDestino(request.getDestino());
     viaje.setFechaSalida(request.getFechaSalida());
@@ -66,17 +68,24 @@ public class ViajeService {
     return toResponse(viajeRepository.save(viaje));
   }
 
-  public void eliminar(String id) {
+  public void eliminar(String id, String usuarioId) {
+    Viaje viaje =
+        viajeRepository
+            .findById(id)
+            .orElseThrow(() -> new RuntimeException("Viaje no encontrado: " + id));
+    verificarAcceso(viaje, usuarioId);
     viajeRepository.deleteById(id);
   }
 
   // Reemplaza todo el itinerario con la lista que manda el editor
   // El orden lo da la posición en la lista, no el campo orden del frontend
-  public ViajeResponse actualizarItinerario(String viajeId, List<BloqueRequest> bloques) {
+  public ViajeResponse actualizarItinerario(
+      String viajeId, List<BloqueRequest> bloques, String usuarioId) {
     Viaje viaje =
         viajeRepository
             .findById(viajeId)
             .orElseThrow(() -> new RuntimeException("Viaje no encontrado: " + viajeId));
+    verificarAcceso(viaje, usuarioId);
 
     List<BloqueItinerario> nuevos = new ArrayList<>();
     for (int i = 0; i < bloques.size(); i++) {
@@ -88,11 +97,12 @@ public class ViajeService {
   }
 
   // Añade un bloque nuevo al final del itinerario
-  public ViajeResponse agregarBloque(String viajeId, BloqueRequest request) {
+  public ViajeResponse agregarBloque(String viajeId, BloqueRequest request, String usuarioId) {
     Viaje viaje =
         viajeRepository
             .findById(viajeId)
             .orElseThrow(() -> new RuntimeException("Viaje no encontrado: " + viajeId));
+    verificarAcceso(viaje, usuarioId);
 
     int posicion = viaje.getItinerario().size();
     viaje.getItinerario().add(toBloqueNuevo(request, posicion));
@@ -100,31 +110,41 @@ public class ViajeService {
   }
 
   // Edita el contenido de un bloque concreto sin tocar los demás
-  public ViajeResponse actualizarBloque(String viajeId, String bloqueId, BloqueRequest request) {
+  public ViajeResponse actualizarBloque(
+      String viajeId, String bloqueId, BloqueRequest request, String usuarioId) {
     Viaje viaje =
         viajeRepository
             .findById(viajeId)
             .orElseThrow(() -> new RuntimeException("Viaje no encontrado: " + viajeId));
+    verificarAcceso(viaje, usuarioId);
 
-    viaje.getItinerario().stream()
-        .filter(b -> bloqueId.equals(b.getId()))
-        .findFirst()
-        .ifPresent(
-            b -> {
-              if (request.getTipo() != null) b.setTipo(request.getTipo());
-              if (request.getContenido() != null) b.setContenido(request.getContenido());
-              if (request.getDato() != null) b.setDato(request.getDato());
-            });
+    boolean encontrado =
+        viaje.getItinerario().stream()
+            .filter(b -> bloqueId.equals(b.getId()))
+            .findFirst()
+            .map(
+                b -> {
+                  if (request.getTipo() != null) b.setTipo(request.getTipo());
+                  if (request.getContenido() != null) b.setContenido(request.getContenido());
+                  if (request.getDato() != null) b.setDato(request.getDato());
+                  return true;
+                })
+            .orElse(false);
+
+    if (!encontrado) {
+      throw new RuntimeException("Bloque no encontrado: " + bloqueId);
+    }
 
     return toResponse(viajeRepository.save(viaje));
   }
 
   // Elimina un bloque y reordena los índices
-  public ViajeResponse eliminarBloque(String viajeId, String bloqueId) {
+  public ViajeResponse eliminarBloque(String viajeId, String bloqueId, String usuarioId) {
     Viaje viaje =
         viajeRepository
             .findById(viajeId)
             .orElseThrow(() -> new RuntimeException("Viaje no encontrado: " + viajeId));
+    verificarAcceso(viaje, usuarioId);
 
     viaje.getItinerario().removeIf(b -> bloqueId.equals(b.getId()));
 
@@ -133,6 +153,13 @@ public class ViajeService {
     }
 
     return toResponse(viajeRepository.save(viaje));
+  }
+
+  private void verificarAcceso(Viaje viaje, String usuarioId) {
+    if (!viaje.getPropietarioId().equals(usuarioId)
+        && !viaje.getColaboradores().contains(usuarioId)) {
+      throw new RuntimeException("No tienes acceso a este viaje");
+    }
   }
 
   private BloqueItinerario toBloqueNuevo(BloqueRequest req, int orden) {

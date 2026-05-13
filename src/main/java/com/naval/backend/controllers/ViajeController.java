@@ -30,18 +30,18 @@ public class ViajeController {
 
   @GetMapping("/{id}")
   public ResponseEntity<ViajeResponse> obtener(@PathVariable String id) {
-    return ResponseEntity.ok(viajeService.obtenerPorId(id));
+    return ResponseEntity.ok(viajeService.obtenerPorId(id, getUsuarioId()));
   }
 
   @PutMapping("/{id}")
   public ResponseEntity<ViajeResponse> actualizar(
       @PathVariable String id, @RequestBody ViajeRequest request) {
-    return ResponseEntity.ok(viajeService.actualizar(id, request));
+    return ResponseEntity.ok(viajeService.actualizar(id, request, getUsuarioId()));
   }
 
   @DeleteMapping("/{id}")
   public ResponseEntity<Void> eliminar(@PathVariable String id) {
-    viajeService.eliminar(id);
+    viajeService.eliminar(id, getUsuarioId());
     return ResponseEntity.noContent().build();
   }
 
@@ -51,28 +51,28 @@ public class ViajeController {
   @PutMapping("/{id}/itinerario")
   public ResponseEntity<ViajeResponse> actualizarItinerario(
       @PathVariable String id, @RequestBody List<BloqueRequest> bloques) {
-    return ResponseEntity.ok(viajeService.actualizarItinerario(id, bloques));
+    return ResponseEntity.ok(viajeService.actualizarItinerario(id, bloques, getUsuarioId()));
   }
 
   // Añade un bloque nuevo al final
   @PostMapping("/{id}/itinerario/bloque")
   public ResponseEntity<ViajeResponse> agregarBloque(
       @PathVariable String id, @RequestBody BloqueRequest request) {
-    return ResponseEntity.ok(viajeService.agregarBloque(id, request));
+    return ResponseEntity.ok(viajeService.agregarBloque(id, request, getUsuarioId()));
   }
 
   // Edita el contenido de un bloque concreto
   @PutMapping("/{id}/itinerario/bloque/{bloqueId}")
   public ResponseEntity<ViajeResponse> actualizarBloque(
       @PathVariable String id, @PathVariable String bloqueId, @RequestBody BloqueRequest request) {
-    return ResponseEntity.ok(viajeService.actualizarBloque(id, bloqueId, request));
+    return ResponseEntity.ok(viajeService.actualizarBloque(id, bloqueId, request, getUsuarioId()));
   }
 
   // Elimina un bloque concreto
   @DeleteMapping("/{id}/itinerario/bloque/{bloqueId}")
   public ResponseEntity<ViajeResponse> eliminarBloque(
       @PathVariable String id, @PathVariable String bloqueId) {
-    return ResponseEntity.ok(viajeService.eliminarBloque(id, bloqueId));
+    return ResponseEntity.ok(viajeService.eliminarBloque(id, bloqueId, getUsuarioId()));
   }
 
   // Utilidad

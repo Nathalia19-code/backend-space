@@ -30,7 +30,14 @@ public class LugarService {
         .collect(Collectors.toList());
   }
 
-  public void eliminarFavorito(String id) {
+  public void eliminarFavorito(String id, String usuarioId) {
+    Favorito favorito =
+        favoritoRepository
+            .findById(id)
+            .orElseThrow(() -> new RuntimeException("Favorito no encontrado: " + id));
+    if (!favorito.getUsuarioId().equals(usuarioId)) {
+      throw new RuntimeException("No tienes permiso para eliminar este favorito");
+    }
     favoritoRepository.deleteById(id);
   }
 
