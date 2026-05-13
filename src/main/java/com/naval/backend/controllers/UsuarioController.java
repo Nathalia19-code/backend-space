@@ -12,20 +12,19 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/usuarios")
 public class UsuarioController {
 
-    @Autowired
-    private UsuarioService usuarioService;
+  @Autowired private UsuarioService usuarioService;
 
-    @GetMapping("/me")
-    public ResponseEntity<UsuarioResponse> obtenerPerfil() {
-        return ResponseEntity.ok(usuarioService.obtenerPerfil(getUsuarioId()));
-    }
+  @GetMapping("/me")
+  public ResponseEntity<UsuarioResponse> obtenerPerfil() {
+    return ResponseEntity.ok(usuarioService.obtenerPerfil(getUsuarioId()));
+  }
 
-    @PutMapping("/me")
-    public ResponseEntity<UsuarioResponse> actualizar(@RequestBody UsuarioUpdateRequest request) {
-        return ResponseEntity.ok(usuarioService.actualizar(getUsuarioId(), request));
-    }
+  @PutMapping("/me")
+  public ResponseEntity<UsuarioResponse> actualizar(@RequestBody UsuarioUpdateRequest request) {
+    return ResponseEntity.ok(usuarioService.actualizar(getUsuarioId(), request));
+  }
 
-    private String getUsuarioId() {
-        return (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-    }
+  private String getUsuarioId() {
+    return (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+  }
 }

@@ -1,4 +1,3 @@
 package com.naval.backend.config;
 
-public class WebSocketConfig {
-}
+public class WebSocketConfig {}

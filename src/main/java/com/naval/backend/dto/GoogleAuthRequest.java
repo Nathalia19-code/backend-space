@@ -7,10 +7,6 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class LoginResponse {
-  private String token;
-  private String usuarioId;
-  private String nombreUsuario;
-  private String nombre;
-  private String email;
+public class GoogleAuthRequest {
+  private String accessToken;
 }
