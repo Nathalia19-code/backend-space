@@ -31,11 +31,7 @@ public class SecurityConfig {
             session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
         .authorizeHttpRequests(
             auth ->
-                auth.requestMatchers("/auth/**")
-                    .permitAll() // registro y login son públicos
-                    .anyRequest()
-                    .authenticated() // todo lo demás requiere token
-            )
+                auth.requestMatchers("/auth/**", "/ws/**").permitAll().anyRequest().authenticated())
         .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
     return http.build();
   }
