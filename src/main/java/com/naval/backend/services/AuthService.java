@@ -10,6 +10,7 @@ import java.time.LocalDateTime;
 import java.util.Map;
 import java.util.UUID;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -31,6 +32,9 @@ public class AuthService {
   @Autowired private JavaMailSender mailSender;
 
   @Autowired private RestTemplate restTemplate;
+
+  @Value("${spring.mail.username}")
+  private String mailFrom;
 
   public LoginResponse registrar(RegisterRequest request) {
     if (usuarioRepository.existsByEmail(request.getEmail())) {
@@ -90,6 +94,7 @@ public class AuthService {
               usuarioRepository.save(usuario);
 
               SimpleMailMessage mensaje = new SimpleMailMessage();
+              mensaje.setFrom(mailFrom);
               mensaje.setTo(email);
               mensaje.setSubject("Recuperar contraseña — Naval");
               mensaje.setText(
